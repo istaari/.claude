@@ -1,6 +1,6 @@
 ---
 description: Generate a structured architecture plan document for any product or feature
-argument-hint: "<product-title-or-description>" [--prd <path-or-url>] [path/to/reference-resources/]
+argument-hint: '"<product-title-or-description>" [--prd <path-or-url>] [path/to/reference-resources/]'
 ---
 
 # /draft-architecture — Architecture Planner
