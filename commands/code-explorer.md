@@ -1,5 +1,5 @@
 ---
-description: Analyze code at any scope — file, package, or project — to understand, question, and learn from it. Pass a local path or a GitHub URL (file, directory, or repo). Single files are analyzed inline; packages and projects are written to docs/.
+description: Analyze code at any scope — file, package, or project — to understand, question, and learn from it. Pass a local path or a GitHub URL (file, directory, or repo). All scopes write their analysis to docs/ (docs/external/<owner>-<repo>/ for GitHub URLs).
 argument-hint: <file.java | src/package/ | . | https://github.com/owner/repo/...>
 disable-model-invocation: true
 ---
@@ -41,9 +41,10 @@ FLAGS
   --full        Force full analysis even on previously cached targets
 
 OUTPUT
-  Single file  → inline in this conversation
+  Single file  → docs/<filename>.md
   Package      → docs/<package_name>.md
   Project      → docs/<project_name>.md
+  (GitHub URL runs write under docs/external/<owner>-<repo>/ instead of docs/)
 
 GITHUB MCP SERVERS
   github.com URLs     → github-com MCP server
@@ -199,7 +200,7 @@ Count the lines in the file:
 Run: `git log --oneline -10 -- <file_path>`
 Store output as `CHANGE_HISTORY`. Include a one-line note in section 1 (Overview) if the history reveals notable patterns (e.g., "frequently modified", "single author", "recent rewrite"). Skip if the file is from a GitHub URL.
 
-Write the analysis to `docs/explanation.md`. Create the file if it does not exist; overwrite it if it does. Do not show the full analysis inline — only confirm to the user: "Analysis written to docs/explanation.md."
+Write the analysis to `<OUTPUT_BASE>/<filename>.md`, where `<filename>` is the source file's base name (e.g. `MyService.java` → `docs/MyService.md`; for a GitHub URL, `docs/external/<owner>-<repo>/<filename>.md`). Create the file if it does not exist; overwrite it if it does. Do not show the full analysis inline — only confirm to the user: "Analysis written to `<OUTPUT_BASE>/<filename>.md`."
 
 Use this structure for the file:
 
@@ -332,6 +333,9 @@ Each agent prompt must include: `FILE_SLICE_TREE` (only the subtree relevant to 
 After agents complete, read every file they flag as important to build full understanding before writing.
 
 **Phase 4 — Write output:**
+
+**If `SHALLOW = true`:** produce only sections 1 (Package Overview & Mental Model), 3 (Design & Reasoning), and 7 (Learning) — skip the rest. Otherwise produce the full template below.
+
 Determine the package name from the directory name. Create `<OUTPUT_BASE>/<package_name>.md`:
 
 ```markdown
@@ -450,6 +454,10 @@ Append to `.claude/CLAUDE.md` (local runs only — skip for GitHub URL runs). Do
    - If yes: ask which improvement, then write `.claude/docs/adr/<kebab-title>-<ISO-date>.md` and add a one-line entry to `## Architecture Decisions (ADRs)` in `VOCAB_CONTEXT_PATH`
    - If no: proceed
 
+---
+
+### PROJECT
+
 **Setup:** create a todo list with the following tasks:
 1. Map project structure
 2. Spawn parallel analysis agents
@@ -494,6 +502,9 @@ Read all entry points, core service files, and config files flagged by agents.
 Use the root directory name, the `name` field from a config file (package.json, pom.xml), or the repo name.
 
 **Phase 5 — Write output:**
+
+**If `SHALLOW = true`:** produce only sections 1 (Project Overview & Mental Model), 3 (Design & Reasoning), and 7 (Learning) — skip the rest. Otherwise produce the full template below.
+
 Create `<OUTPUT_BASE>/<project_name>.md`:
 
 ```markdown
